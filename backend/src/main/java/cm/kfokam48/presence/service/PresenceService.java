@@ -2,6 +2,7 @@ package cm.kfokam48.presence.service;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import cm.kfokam48.presence.domain.Etudiant;
 import cm.kfokam48.presence.domain.Presence;
 import cm.kfokam48.presence.domain.SessionCours;
 import cm.kfokam48.presence.domain.SourcePresence;
+import cm.kfokam48.presence.dto.PresenceDetailDto;
 import cm.kfokam48.presence.dto.PresenceDto;
 import cm.kfokam48.presence.exception.CodeErreur;
 import cm.kfokam48.presence.exception.MetierException;
@@ -63,6 +65,26 @@ public class PresenceService {
             throw new MetierException(CodeErreur.CODE_EXPIRE); // RG1
         }
         return enregistrer(session, etudiant, SourcePresence.ETUDIANT, maintenant);
+    }
+
+    /**
+     * EF9 : le formateur ajoute une présence à la main (Q14). Elle est marquée FORMATEUR (RG15) et n'est
+     * soumise ni à l'expiration du code ni à la clôture : c'est une correction a posteriori.
+     */
+    public PresenceDto ajouterManuellement(Long sessionId, Long etudiantId) {
+        SessionCours session = sessions.findById(sessionId)
+                .orElseThrow(() -> new MetierException(CodeErreur.SESSION_INCONNUE));
+        Etudiant etudiant = etudiants.findById(etudiantId)
+                .orElseThrow(() -> new MetierException(CodeErreur.ETUDIANT_INCONNU, HttpStatus.BAD_REQUEST));
+        return enregistrer(session, etudiant, SourcePresence.FORMATEUR, horloge.instant());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PresenceDetailDto> presencesDe(Long sessionId) {
+        if (!sessions.existsById(sessionId)) {
+            throw new MetierException(CodeErreur.SESSION_INCONNUE);
+        }
+        return presences.presencesDeLaSeance(sessionId).stream().map(PresenceDetailDto::de).toList();
     }
 
     private PresenceDto enregistrer(SessionCours session, Etudiant etudiant, SourcePresence source,
