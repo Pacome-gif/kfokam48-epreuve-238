@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import cm.kfokam48.presence.domain.Exercice;
@@ -56,7 +57,12 @@ public class AssignationService {
         });
     }
 
-    /** H1 : à chaque nouvelle présence, les exercices restés sans relecteur retentent leur chance. */
+    /**
+     * H1 : à chaque nouvelle présence, les exercices restés sans relecteur retentent leur chance.
+     * Transaction propre (bug #21) : si deux présences simultanées visent le même exercice, seule
+     * cette attribution échoue, jamais la présence déjà validée.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void assignerEnAttente(Long sessionId) {
         List<Exercice> enAttente = exercices.findBySessionIdAndStatutOrderByDeposeAtAsc(sessionId,
                 StatutExercice.DEPOSE);
