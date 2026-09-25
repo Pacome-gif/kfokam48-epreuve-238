@@ -47,6 +47,15 @@ export type RelectureAssignee = {
   note: number | null;
   commentaire: string | null;
 };
+export type LigneTableau = {
+  etudiantId: number;
+  nom: string;
+  presences: number;
+  exercicesDeposes: number;
+  moyenne: number | null;
+  relecturesEnAttente: number;
+  exercicesEnAttente: number;
+};
 export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
 // --- Référentiel (EF7) ---
@@ -84,3 +93,7 @@ export const rendreRelecture = (relectureId: number, etudiantId: number, note: n
     headers: { "X-Etudiant-Id": String(etudiantId) },
     body: JSON.stringify({ note, commentaire }),
   });
+
+// --- Tableau (EF6) : la moyenne vient de l'API, jamais recalculée ici ---
+
+export const tableau = (promotionId: number) => requete<LigneTableau[]>(`/api/tableau?promotionId=${promotionId}`);
