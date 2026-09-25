@@ -1,0 +1,39 @@
+# Démarrage complet : docker compose up --build
+# Identifiants de base de données de démonstration uniquement (aucun secret réel).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kfokam48
+      POSTGRES_USER: kfokam48
+      POSTGRES_PASSWORD: kfokam48
+    healthcheck:
+      # -h 127.0.0.1 : pendant l'initialisation, PostgreSQL n'écoute que sur le socket Unix ;
+      # on attend qu'il accepte réellement les connexions TCP du backend.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U kfokam48 -d kfokam48"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: on-failure
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/kfokam48
+      DB_USER: kfokam48
+      DB_PASSWORD: kfokam48
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
