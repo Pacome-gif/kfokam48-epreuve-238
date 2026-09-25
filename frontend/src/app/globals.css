@@ -1,0 +1,19 @@
+/* Mise en forme minimale : le rendu visuel n'est pas évalué. Utilisable à 360 px (ENF2). */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; line-height: 1.5; color: #1a1a1a; background: #fafafa; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0.75rem 1rem; background: #1f3a5f; }
+nav a { color: #fff; text-decoration: none; font-weight: 600; }
+main { max-width: 960px; margin: 0 auto; padding: 1rem; }
+fieldset { border: 1px solid #ccc; border-radius: 6px; margin: 0 0 1rem; padding: 0.75rem 1rem; }
+label { display: block; margin: 0.5rem 0; }
+input, select, textarea, button { font: inherit; padding: 0.4rem 0.6rem; max-width: 100%; }
+input, select, textarea { display: block; width: 100%; margin-top: 0.25rem; }
+button { background: #1f3a5f; color: #fff; border: 0; border-radius: 4px; cursor: pointer; margin-top: 0.5rem; }
+button:disabled { opacity: 0.6; cursor: wait; }
+table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+.info { color: #555; }
+.erreur { color: #a40000; font-weight: 600; }
+.succes { color: #0a6b2d; font-weight: 600; }
+.code { font-size: 2rem; letter-spacing: 0.3rem; font-family: monospace; }
+.attente { color: #a15c00; font-weight: 600; }
