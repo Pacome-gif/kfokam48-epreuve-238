@@ -53,8 +53,21 @@ export type LigneTableau = {
   presences: number;
   exercicesDeposes: number;
   moyenne: number | null;
+  moyenneProvisoire: boolean;
   relecturesEnAttente: number;
   exercicesEnAttente: number;
+};
+export type ExerciceEtudiant = {
+  id: number;
+  sessionId: number;
+  sessionTitre: string;
+  lien: string;
+  statut: StatutExercice;
+  note: number | null;
+  noteProvisoire: boolean;
+  relecturesRendues: number;
+  relecturesAttendues: number;
+  commentaires: string[];
 };
 export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
@@ -78,6 +91,9 @@ export const marquerPresence = (code: string, etudiantId: number) =>
   requete<Presence>("/api/presences", { method: "POST", body: JSON.stringify({ code, etudiantId }) });
 
 // --- Exercices (EF3) ---
+
+export const mesExercices = (etudiantId: number) =>
+  requete<ExerciceEtudiant[]>(`/api/etudiants/${etudiantId}/exercices`);
 
 export const deposerExercice = (sessionId: number, etudiantId: number, lien: string) =>
   requete<ExerciceCree>("/api/exercices", { method: "POST", body: JSON.stringify({ sessionId, etudiantId, lien }) });
