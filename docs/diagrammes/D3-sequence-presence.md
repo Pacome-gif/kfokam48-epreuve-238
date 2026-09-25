@@ -8,6 +8,7 @@ sequenceDiagram
     actor E as Étudiant
     participant F as Front (Next.js)
     participant API as PresenceController
+    participant G as GestionErreurs (@RestControllerAdvice)
     participant S as PresenceService
     participant T as TentativeCodeRepository
     participant SR as SessionRepository
@@ -23,24 +24,24 @@ sequenceDiagram
     API->>S: marquer(code, etudiantId)
     S->>T: bloqué jusqu'à ? (RG4)
     alt étudiant bloqué (5 erreurs < 2 min)
-        S-->>API: TropDeTentativesException
+        S-->>API: MetierException(TROP_DE_TENTATIVES)
         API-->>F: 429 { code: "TROP_DE_TENTATIVES" }
     end
     S->>SR: findByCode(code)
     alt code inconnu
         S->>T: echecs + 1 (bloque 2 min si 5)
-        S-->>API: CodeInconnuException
+        S-->>API: MetierException(CODE_INCONNU)
         API-->>F: 400 { code: "CODE_INCONNU" }
     else séance clôturée (RG3)
-        S-->>API: SessionClotureeException
+        S-->>API: MetierException(SESSION_CLOTUREE)
         API-->>F: 410 { code: "SESSION_CLOTUREE" }
     else code expiré (RG1 : maintenant > expirationAt)
-        S-->>API: CodeExpireException
+        S-->>API: MetierException(CODE_EXPIRE)
         API-->>F: 410 { code: "CODE_EXPIRE" }
     else étudiant déjà présent (RG2)
         S->>PR: existsBySessionAndEtudiant
         PR-->>S: true
-        S-->>API: DejaPresentException
+        S-->>API: MetierException(DEJA_PRESENT)
         API-->>F: 409 { code: "DEJA_PRESENT" }
     else cas nominal
         S->>PR: save(Presence source=ETUDIANT)
@@ -51,5 +52,7 @@ sequenceDiagram
         F-->>E: « Présence enregistrée »
     end
 ```
+
+Chaque `MetierException` est traduite en `{code, message}` par `GestionErreurs` avec le statut HTTP du contrat. Le contrôle de blocage (RG4) arrive avec l'issue #8 (Should).
 
 Le cas « étudiant d'une autre promotion » (`403 HORS_PROMOTION`, H10) est vérifié juste avant le contrôle « déjà présent ». Il n'est pas dessiné ici pour garder le diagramme lisible.
