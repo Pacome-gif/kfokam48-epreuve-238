@@ -5,6 +5,7 @@ import { listerPromotions, listerSessions } from "@/lib/api";
 import { heure } from "@/lib/format";
 import { useChargement } from "@/lib/useChargement";
 import { Etat } from "@/components/Etat";
+import { CloturerSeance } from "./CloturerSeance";
 import { OuvrirSeance } from "./OuvrirSeance";
 import { PresencesSeance } from "./PresencesSeance";
 import { Tableau } from "./Tableau";
@@ -41,7 +42,11 @@ export default function PageFormateur() {
             {sessions.donnees?.map((s) => (
               <li key={s.id}>
                 <strong>{s.titre}</strong> — code <code>{s.code}</code>, ouverte le {heure(s.ouvertureAt)}
-                {s.clotureAt && <> — clôturée</>}
+                {s.clotureAt ? (
+                  <> — clôturée le {heure(s.clotureAt)}</>
+                ) : (
+                  <> <CloturerSeance sessionId={s.id} onCloturee={sessions.recharger} /></>
+                )}
                 <details>
                   <summary>Présences</summary>
                   <PresencesSeance sessionId={s.id} promotionId={s.promotionId} />

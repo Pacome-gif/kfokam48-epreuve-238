@@ -57,6 +57,16 @@ public class SessionService {
         return sessions.findByPromotionIdOrderByOuvertureAtDesc(promotionId).stream().map(SessionDto::de).toList();
     }
 
+    /** EF10 : clôture explicite par le formateur (H6). Ensuite : plus de présence par code (RG3) ni de dépôt (RG10). */
+    public SessionDto cloturer(Long id) {
+        SessionCours session = session(id);
+        if (session.estCloturee()) {
+            throw new MetierException(CodeErreur.SESSION_DEJA_CLOTUREE);
+        }
+        session.cloturer(horloge.instant());
+        return SessionDto.de(session);
+    }
+
     public SessionCours session(Long id) {
         return sessions.findById(id).orElseThrow(() -> new MetierException(CodeErreur.SESSION_INCONNUE));
     }
