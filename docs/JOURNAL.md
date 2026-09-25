@@ -15,3 +15,25 @@
 **Bloqué** : ~30 min pour le premier build Docker, parce que le téléchargement des dépendances Maven était très lent sur le réseau de la salle ; j'ai continué à coder pendant ce temps. ~10 min sur un « Connection refused » au démarrage : le healthcheck `pg_isready` passait par le socket Unix et déclarait PostgreSQL prêt trop tôt. Je l'ai corrigé en TCP dans la PR #14 avant de la fusionner. Mon poste n'a que `docker-compose` v1 : le README indique les deux commandes.
 
 **IA** : Claude a écrit la plupart du code à partir des critères des issues. Vérifications : `./mvnw test` au vert sur chaque branche, `npm run lint` et `npm run build`, puis un scénario `curl` complet sur la stack Docker avec PostgreSQL. Chaque code HTTP et chaque `{code, message}` ont été comparés au contrat : 201/409/410/400 pour les présences, 400/409 pour les exercices, 400/403/200/409 pour les relectures, 404 pour le tableau. J'ai aussi vérifié à la main que le tableau de démo donne 15 et 12 de moyenne, et « en attente » pour Carine.
+
+## Étape 3 — Enveloppe : bug et changement de besoin (≈ 11h50 → 13h15)
+
+**Fait** :
+- **Bug** : issue #21 ouverte avant tout code, avec la cause et les étapes de reproduction. Commit `d416e0c` : le test seul, qui échoue. Correctif et script de reproduction dans la PR #24, sur une branche séparée.
+- **Changement** : issues #22 et #23. Premier commit : l'analyse mise à jour (CDC v2, D1 à D4). Ensuite le contrat v1.1.0, puis la migration **V3 ajoutée** (V1 et V2 ne sont pas modifiées), puis le code. PR #25 et #26, séparées du correctif.
+
+**Repriorisation (ce que je sacrifie)** : #8 (blocage après 5 erreurs), #11 (remplacer son lien) et #13 (détail par séance) sortent du périmètre, et #12 (voir sa note) passe Must. Les raisons sont dans le CDC §4 et en commentaire de chaque issue :
+- le blocage est une protection, alors que le code expire déjà en 15 min ;
+- avec deux relecteurs, la règle de Q13 devient ambiguë.
+
+**Bloqué** :
+- ~20 min à traduire le message du client : dans mon code, deux présences n'entrent jamais en conflit directement. En lisant les logs, j'ai trouvé la vraie cause : l'attribution d'un exercice en attente dans la même transaction que la présence, avec une violation de `uk_relecture_exercice`. Reproduit 15 fois sur 15.
+- ~10 min sur `docker-compose` v1, qui plante quand il recrée un conteneur (`ContainerConfig`) : il faut supprimer l'ancien conteneur à la main.
+- ~5 min : un commit dont les tests dépendaient des données du commit suivant. Je les ai fusionnés avant de pousser pour que chaque commit reste vert.
+
+**IA** : Claude a proposé la cause du bug et le correctif (attribution après commit, dans sa propre transaction, avec verrou sur l'exercice). Vérifications :
+1. Le test reproduit l'entrelacement et **échoue avant** le correctif, avec la même erreur que les logs de production.
+2. Il passe après le correctif.
+3. Le script sur PostgreSQL passe de 15 pertes sur 15 à 0 sur 15.
+
+Pour la migration, j'ai appliqué V3 dans une transaction annulée sur la base remplie, puis laissé Flyway l'appliquer réellement : les 34 exercices et les 3 notes sont conservés. Une requête SQL confirme qu'aucun exercice n'a plus de 2 relecteurs, ni deux fois le même.
