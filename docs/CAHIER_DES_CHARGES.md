@@ -74,8 +74,8 @@ L'application doit :
 | #6 Rendre une relecture | Must | EF5, EF8, RG5, RG8, RG9, RG18 |
 | #7 Tableau du formateur | Must | EF6, RG14, RG17 |
 | #8 Blocage après 5 erreurs | ~~Should~~ **hors périmètre** | EF13, RG4 |
-| #9 Présence manuelle | Should | EF9, RG15 |
-| #10 Clôture de séance | Should | EF10, RG3, RG10 |
+| #9 Présence manuelle | Should — **livrée en v1.0** | EF9, RG15 |
+| #10 Clôture de séance | Should — **livrée en v1.0** | EF10, RG3, RG10 |
 | #11 Remplacer son lien | ~~Should~~ **hors périmètre** | EF11, RG11 |
 | #12 Consulter sa note | ~~Should~~ **Must (v2)**, traité dans #23 | EF12, RG16, RG21 |
 | #13 Détail des présences par séance | ~~Could~~ **hors périmètre** | EF14 |
@@ -170,7 +170,7 @@ Le changement « deux relecteurs » est un **Must qui arrive tard**. Il touche l
 - **Tests** : un test unitaire sur une règle métier et un test d'intégration sur un endpoint, qui tournent sans base locale (B6).
 - **Frontend** Next.js, avec les appels API dans `frontend/src/lib/api.ts` uniquement et sans aucun calcul métier (F1–F3).
 - **Démarrage** : `docker compose up` (PostgreSQL, backend, frontend).
-- **Git** : dépôt public, une branche et une PR par ticket, jalons `[JALON]`.
+- **Git** : dépôt public, une branche et une PR par issue, jalons `[JALON]`.
 
 ## 9. Livrables
 
@@ -188,7 +188,8 @@ Le changement « deux relecteurs » est un **Must qui arrive tard**. Il touche l
 2. **v0.1** : les stories Must uniquement. Une branche `feat/<n>-<slug>` par issue, des commits atomiques qui citent les EF et RG concernées, une PR qui ferme l'issue (`Closes #n`). `main` compile et ses tests passent à chaque fusion. Puis `[JALON] v0.1`.
 3. **Enveloppe** : ouvrir une issue pour le bug et une autre pour l'évolution **avant** de coder ; reproduire le bug par un test ; nouvelle migration Flyway ; mise à jour du contrat, du cahier des charges et des diagrammes dans un commit dédié ; correctif et évolution sur deux branches séparées.
 4. **v1.0** : les stories Should selon le temps restant, le CHANGELOG, un README vérifié depuis un clone vierge, le backlog restant trié. Puis `[JALON] v1.0`.
-5. **Épreuve Git** : dans un dépôt séparé.
-6. **Soumission** : les hash finaux relevés après le dernier push.
+5. **Soumission** : le hash du commit final relevé après le dernier push, `SOUMISSION.md` déposé sur la plateforme.
 
-**Definition of Done** : un ticket est terminé quand ses critères d'acceptation sont vérifiés (par un test ou par un `curl` décrit dans la PR), que le code est fusionné dans `main` par une PR qui ferme l'issue, que `./mvnw test` et `npm run build` passent, et que le contrat et la documentation sont à jour si le ticket les touche.
+> *Mise à jour (étape 4)* : le sujet révisé compte **cinq étapes**. L'épreuve Git sur dépôt fourni est supprimée, et « Soumettre » devient l'étape 5. Les étapes 1 à 4 sont inchangées.
+
+**Definition of Done** : une issue est terminée quand ses critères d'acceptation sont vérifiés (par un test ou par un `curl` décrit dans la PR), que le code est fusionné dans `main` par une PR qui ferme l'issue, que `./mvnw test` et `npm run build` passent, et que le contrat et la documentation sont à jour si l'issue les touche.
