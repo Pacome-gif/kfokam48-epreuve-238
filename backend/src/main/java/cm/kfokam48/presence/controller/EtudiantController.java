@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cm.kfokam48.presence.dto.ExerciceEtudiantDto;
 import cm.kfokam48.presence.dto.RelectureAssigneeDto;
+import cm.kfokam48.presence.service.ExerciceService;
 import cm.kfokam48.presence.service.RelectureService;
 
 @RestController
@@ -15,9 +17,16 @@ import cm.kfokam48.presence.service.RelectureService;
 public class EtudiantController {
 
     private final RelectureService relectures;
+    private final ExerciceService exercices;
 
-    public EtudiantController(RelectureService relectures) {
+    public EtudiantController(RelectureService relectures, ExerciceService exercices) {
         this.relectures = relectures;
+        this.exercices = exercices;
+    }
+
+    @GetMapping("/exercices")
+    public List<ExerciceEtudiantDto> exercices(@PathVariable Long id) {
+        return exercices.exercicesDe(id);
     }
 
     @GetMapping("/relectures")

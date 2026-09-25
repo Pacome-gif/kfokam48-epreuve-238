@@ -8,7 +8,7 @@ import { useEnvoi } from "@/lib/useEnvoi";
 import { Etat } from "@/components/Etat";
 
 /** EF3 : dépôt du lien d'exercice pour une séance de sa promotion. */
-export function DeposerExercice({ etudiant }: { etudiant: Etudiant }) {
+export function DeposerExercice({ etudiant, onDepose }: { etudiant: Etudiant; onDepose: () => void }) {
   const sessions = useChargement(() => listerSessions(etudiant.promotionId), `sessions-${etudiant.promotionId}`);
   const [sessionId, setSessionId] = useState("");
   const [lien, setLien] = useState("");
@@ -22,7 +22,7 @@ export function DeposerExercice({ etudiant }: { etudiant: Etudiant }) {
         executer(
           () => deposerExercice(Number(sessionId), etudiant.id, lien),
           (r) => `Exercice déposé ✔ — ${LIBELLE_STATUT[r.statut]}`,
-        );
+        ).then((r) => r && onDepose());
       }}
     >
       <fieldset>

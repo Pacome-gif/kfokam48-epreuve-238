@@ -15,6 +15,8 @@ public interface ExerciceRepository extends JpaRepository<Exercice, Long> {
 
     boolean existsBySessionIdAndEtudiantId(Long sessionId, Long etudiantId);
 
+    List<Exercice> findByEtudiantIdOrderByDeposeAtDesc(Long etudiantId);
+
     /** H1, H12 : exercices de la séance à qui il manque encore des relecteurs. */
     @Query("select e from Exercice e where e.session.id = :sessionId "
             + "and e.statut <> cm.kfokam48.presence.domain.StatutExercice.RELU "

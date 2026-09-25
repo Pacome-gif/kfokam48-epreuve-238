@@ -35,7 +35,10 @@ export function Tableau({ promotionId }: { promotionId: number }) {
                 <td className={l.exercicesEnAttente > 0 ? "attente" : undefined}>
                   {l.exercicesEnAttente > 0 ? `${l.exercicesEnAttente} en attente` : "—"}
                 </td>
-                <td>{l.moyenne ?? "—"}</td>
+                <td className={l.moyenneProvisoire ? "attente" : undefined}>
+                  {l.moyenne ?? "—"}
+                  {l.moyenneProvisoire && " (provisoire)"}
+                </td>
                 <td className={l.relecturesEnAttente > 0 ? "attente" : undefined}>{l.relecturesEnAttente}</td>
               </tr>
             ))}
