@@ -84,6 +84,9 @@ export const listerEtudiants = (promotionId: number) =>
 export const ouvrirSession = (titre: string, promotionId: number) =>
   requete<SessionOuverte>("/api/sessions", { method: "POST", body: JSON.stringify({ titre, promotionId }) });
 
+export const cloturerSession = (sessionId: number) =>
+  requete<Session>(`/api/sessions/${sessionId}/cloture`, { method: "POST" });
+
 export const listerSessions = (promotionId: number) => requete<Session[]>(`/api/sessions?promotionId=${promotionId}`);
 
 // --- Présences (EF2, EF9) ---
