@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,11 @@ public class SessionController {
     @ResponseStatus(HttpStatus.CREATED)
     public SessionOuverteDto ouvrir(@Valid @RequestBody SessionCreationDto demande) {
         return sessions.ouvrir(demande);
+    }
+
+    @PostMapping("/{id}/cloture")
+    public SessionDto cloturer(@PathVariable Long id) {
+        return sessions.cloturer(id);
     }
 
     @GetMapping
