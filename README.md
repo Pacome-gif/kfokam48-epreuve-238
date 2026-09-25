@@ -30,9 +30,14 @@ Ensuite :
 
 Chargées automatiquement par la migration Flyway `V2__donnees_demo.sql` :
 - **Promotion A** (6 étudiants) et **Promotion B** (4 étudiants) ;
-- une séance passée « Séance 1 » (promotion A) avec 5 présences (dont une ajoutée par le formateur), 3 exercices, 2 relectures rendues et 1 en attente. Le tableau de la promotion A n'est donc pas vide.
+- une séance passée « Séance 1 » (promotion A) avec 5 présences (dont une ajoutée par le formateur), 3 exercices, 2 relectures rendues et 1 en attente (exercices antérieurs à la double relecture : 1 relecteur requis) ;
+- une « Séance 2 » (migration `V4__donnees_demo_double_relecture.sql`) avec **deux relecteurs par exercice** : Daniel a une note **provisoire** de 14 (1 relecture sur 2), Estelle une note définitive de 14,5 (13 et 16).
 
-Pour essayer le parcours complet : écran **Formateur** → ouvrir une séance pour la promotion A → noter le code → écran **Étudiant** → se choisir, saisir le code, déposer un lien → faire de même avec un 2ᵉ étudiant → écran **Relecteur** → rendre la note → retour au **tableau**.
+Le tableau de la promotion A n'est donc pas vide et montre les deux cas.
+
+Pour essayer le parcours complet : écran **Formateur** → ouvrir une séance pour la promotion A → noter le code → écran **Étudiant** → marquer la présence de deux étudiants, puis en choisir un troisième qui marque sa présence et dépose un lien (il reçoit deux relecteurs) → écran **Relecteur** → rendre une première note → écran **Étudiant** : la note apparaît « provisoire » → rendre la seconde → la note devient définitive → retour au **tableau**.
+
+Reproduction du bug corrigé #21 (deux présences simultanées) : `./scripts/repro-bug-21.sh` une fois la stack démarrée.
 
 ## Démarrer sans Docker (développement)
 
