@@ -1,5 +1,6 @@
 package cm.kfokam48.presence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,6 +18,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import cm.kfokam48.presence.domain.StatutExercice;
+import cm.kfokam48.presence.repository.ExerciceRepository;
+
 /** POST /api/relectures/{id} : codes 200, 400, 403, 409 du contrat. */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,6 +36,9 @@ class RelectureIntegrationTest {
 
     @Autowired
     ObjectMapper json;
+
+    @Autowired
+    ExerciceRepository exercices;
 
     long relectureId;
 
@@ -68,6 +75,44 @@ class RelectureIntegrationTest {
         rendre(RELECTEUR, "18")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("RELECTURE_DEJA_RENDUE"));
+    }
+
+    @Test
+    void exerciceReluSeulementQuandLesDeuxRelecturesSontRendues() throws Exception {
+        // Seconde relectrice : Inès (9) arrive, elle complète l'exercice de Grace (H12)
+        JsonNode session = appel("/api/sessions", "{\"titre\":\"Relecture double\",\"promotionId\":2}");
+        String code = session.get("code").asText();
+        appel("/api/presences", "{\"code\":\"" + code + "\",\"etudiantId\":" + RELECTEUR + "}");
+        appel("/api/presences", "{\"code\":\"" + code + "\",\"etudiantId\":" + AUTRE + "}");
+        JsonNode depot = appel("/api/exercices", "{\"sessionId\":" + session.get("id").asLong()
+                + ",\"etudiantId\":" + AUTEURE + ",\"lien\":\"https://github.com/grace/double\"}");
+        long exerciceId = depot.get("id").asLong();
+        long r1 = relectureDe(RELECTEUR, exerciceId);
+        long r2 = relectureDe(AUTRE, exerciceId);
+
+        rendreRelecture(r1, RELECTEUR, "12").andExpect(status().isOk());
+        assertThat(exercices.findById(exerciceId).orElseThrow().getStatut())
+                .isEqualTo(StatutExercice.EN_ATTENTE_RELECTURE);
+
+        rendreRelecture(r2, AUTRE, "15").andExpect(status().isOk());
+        assertThat(exercices.findById(exerciceId).orElseThrow().getStatut()).isEqualTo(StatutExercice.RELU);
+    }
+
+    long relectureDe(long relecteur, long exerciceId) throws Exception {
+        JsonNode liste = json.readTree(mvc.perform(get("/api/etudiants/" + relecteur + "/relectures"))
+                .andReturn().getResponse().getContentAsString());
+        for (JsonNode r : liste) {
+            if (r.get("exerciceId").asLong() == exerciceId) {
+                return r.get("id").asLong();
+            }
+        }
+        throw new AssertionError("aucune relecture pour " + relecteur);
+    }
+
+    ResultActions rendreRelecture(long id, long etudiantId, String note) throws Exception {
+        return mvc.perform(post("/api/relectures/" + id).header("X-Etudiant-Id", etudiantId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"note\":" + note + ",\"commentaire\":\"ok\"}"));
     }
 
     @Test

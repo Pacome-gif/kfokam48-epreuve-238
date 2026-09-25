@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cm.kfokam48.presence.domain.Exercice;
 import cm.kfokam48.presence.domain.Relecture;
 import cm.kfokam48.presence.dto.RelectureAssigneeDto;
 import cm.kfokam48.presence.dto.RelectureRenduDto;
@@ -46,6 +47,10 @@ public class RelectureService {
             throw new MetierException(CodeErreur.RELECTURE_DEJA_RENDUE); // RG9 (Q15 retenue contre Q10)
         }
         relecture.rendre(note, rendu.commentaire().trim(), horloge.instant());
+        Exercice exercice = relecture.getExercice();
+        if (relectures.countByExerciceIdAndRendueAtIsNotNull(exercice.getId()) >= exercice.getRelecteursRequis()) {
+            exercice.marquerRelu(); // RG20 : toutes les relectures requises sont rendues
+        }
         return RelectureAssigneeDto.de(relecture);
     }
 
