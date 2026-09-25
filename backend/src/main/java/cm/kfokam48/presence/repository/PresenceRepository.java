@@ -12,6 +12,9 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 
     boolean existsBySessionIdAndEtudiantId(Long sessionId, Long etudiantId);
 
+    @Query("select p from Presence p join fetch p.etudiant where p.session.id = :sessionId order by p.createdAt")
+    List<Presence> presencesDeLaSeance(@Param("sessionId") Long sessionId);
+
     @Query("select p.etudiant.id from Presence p where p.session.id = :sessionId")
     List<Long> idsPresents(@Param("sessionId") Long sessionId);
 
