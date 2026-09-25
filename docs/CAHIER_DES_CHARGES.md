@@ -61,6 +61,26 @@ L'application doit :
 | EF13 | Blocage après 5 codes erronés | Après 5 codes inconnus consécutifs, toute tentative de cet étudiant renvoie `429 TROP_DE_TENTATIVES` pendant 2 minutes ; le compteur repart à zéro après un succès. | Should |
 | EF14 | Détail de la présence par séance dans le tableau | Le tableau peut afficher, pour chaque étudiant, la liste des séances où il était présent. | Could |
 
+### Traçabilité exigences → backlog
+
+| Issue | Priorité | Exigences / règles |
+|---|---|---|
+| #1 Socle et démarrage en une commande | Must | ENF4, ENF5, ENF6, EF7 (référentiel) |
+| #2 Ouvrir une séance | Must | EF1, RG1 |
+| #3 Marquer sa présence | Must | EF2, EF7, RG1–RG3, H10 |
+| #4 Déposer un exercice | Must | EF3, RG10, RG12, RG13 |
+| #5 Assigner un relecteur | Must | EF4, RG5–RG7, H1, H3 |
+| #6 Rendre une relecture | Must | EF5, EF8, RG5, RG8, RG9, RG18 |
+| #7 Tableau du formateur | Must | EF6, RG14, RG17 |
+| #8 Blocage après 5 erreurs | Should | EF13, RG4 |
+| #9 Présence manuelle | Should | EF9, RG15 |
+| #10 Clôture de séance | Should | EF10, RG3, RG10 |
+| #11 Remplacer son lien | Should | EF11, RG11 |
+| #12 Consulter sa note | Should | EF12, RG16 |
+| #13 Détail des présences par séance | Could | EF14 |
+
+La v0.1 livre les Must (#1 à #7). Les Should seront traités en v1.0 selon le temps restant après l'enveloppe.
+
 ## 5. Exigences non fonctionnelles
 
 | Réf | Exigence | Comment on la vérifie |
