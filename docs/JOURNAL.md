@@ -16,7 +16,7 @@
 
 **IA** : Claude a écrit la plupart du code à partir des critères des issues. Vérifications : `./mvnw test` au vert sur chaque branche, `npm run lint` et `npm run build`, puis un scénario `curl` complet sur la stack Docker avec PostgreSQL. Chaque code HTTP et chaque `{code, message}` ont été comparés au contrat : 201/409/410/400 pour les présences, 400/409 pour les exercices, 400/403/200/409 pour les relectures, 404 pour le tableau. J'ai aussi vérifié à la main que le tableau de démo donne 15 et 12 de moyenne, et « en attente » pour Carine.
 
-## Étape 3 — Enveloppe : bug et changement de besoin (≈ 11h50 → 13h15)
+## Étape 3 — Enveloppe : bug et changement de besoin (≈ 11h50 → 12h25)
 
 **Fait** :
 - **Bug** : issue #21 ouverte avant tout code, avec la cause et les étapes de reproduction. Commit `d416e0c` : le test seul, qui échoue. Correctif et script de reproduction dans la PR #24, sur une branche séparée.
