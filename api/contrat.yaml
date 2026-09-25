@@ -141,7 +141,7 @@ paths:
       tags: [Présences]
       operationId: ajouterPresenceManuelle
       summary: Le formateur ajoute une présence à la main (EF9, RG15)
-      description: Crée une présence `source = FORMATEUR`. Elle n'est soumise ni à l'expiration du code ni au blocage.
+      description: Crée une présence `source = FORMATEUR`. Elle n'est soumise ni à l'expiration du code ni à la clôture de la séance (correction a posteriori, RG15).
       parameters:
         - $ref: "#/components/parameters/IdPath"
       requestBody:
