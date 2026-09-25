@@ -20,7 +20,8 @@ docker compose up --build
 ```
 
 > Avec l'ancien Compose v1 : `docker-compose up --build`.
-> Le premier build télécharge les dépendances Maven et npm (quelques minutes).
+> Le premier build télécharge les dépendances Maven et npm : de quelques minutes à ~30 minutes sur une connexion lente (mesuré en salle). Les builds suivants utilisent le cache.
+> Procédure vérifiée depuis un clone vierge le 25/09/2026 (Docker 29, Compose v2.40) : 4 migrations Flyway appliquées, données de démo visibles.
 
 Ensuite :
 - Frontend : http://localhost:3000
