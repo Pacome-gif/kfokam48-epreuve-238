@@ -10,6 +10,8 @@ import cm.kfokam48.presence.domain.Relecture;
 
 public interface RelectureRepository extends JpaRepository<Relecture, Long> {
 
+    List<Relecture> findByRelecteurIdOrderByAssigneeAtDesc(Long relecteurId);
+
     /** Nombre de relectures déjà assignées à chaque étudiant dans une séance : [relecteurId, nombre]. */
     @Query("select r.relecteur.id, count(r) from Relecture r where r.exercice.session.id = :sessionId "
             + "group by r.relecteur.id")
