@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Etudiant } from "@/lib/api";
 import { ChoixEtudiant } from "@/components/ChoixEtudiant";
+import { DeposerExercice } from "./DeposerExercice";
 import { MarquerPresence } from "./MarquerPresence";
 
 export default function PageEtudiant() {
@@ -15,7 +16,8 @@ export default function PageEtudiant() {
       {etudiant && (
         <>
           <p>Bonjour <strong>{etudiant.nom}</strong></p>
-          <MarquerPresence key={etudiant.id} etudiant={etudiant} />
+          <MarquerPresence key={`p-${etudiant.id}`} etudiant={etudiant} />
+          <DeposerExercice key={`d-${etudiant.id}`} etudiant={etudiant} />
         </>
       )}
     </>

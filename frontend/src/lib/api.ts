@@ -36,6 +36,8 @@ export type Promotion = { id: number; nom: string };
 export type Etudiant = { id: number; nom: string; promotionId: number };
 export type SessionOuverte = { id: number; code: string; ouvertureAt: string; expirationAt: string };
 export type Presence = { id: number; sessionId: number; etudiantId: number; source: "ETUDIANT" | "FORMATEUR" };
+export type StatutExercice = "DEPOSE" | "EN_ATTENTE_RELECTURE" | "RELU";
+export type ExerciceCree = { id: number; statut: StatutExercice };
 export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
 // --- Référentiel (EF7) ---
@@ -56,3 +58,8 @@ export const listerSessions = (promotionId: number) => requete<Session[]>(`/api/
 
 export const marquerPresence = (code: string, etudiantId: number) =>
   requete<Presence>("/api/presences", { method: "POST", body: JSON.stringify({ code, etudiantId }) });
+
+// --- Exercices (EF3) ---
+
+export const deposerExercice = (sessionId: number, etudiantId: number, lien: string) =>
+  requete<ExerciceCree>("/api/exercices", { method: "POST", body: JSON.stringify({ sessionId, etudiantId, lien }) });
