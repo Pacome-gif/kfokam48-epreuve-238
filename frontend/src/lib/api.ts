@@ -34,6 +34,8 @@ async function requete<T>(chemin: string, init?: RequestInit): Promise<T> {
 
 export type Promotion = { id: number; nom: string };
 export type Etudiant = { id: number; nom: string; promotionId: number };
+export type SessionOuverte = { id: number; code: string; ouvertureAt: string; expirationAt: string };
+export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
 // --- Référentiel (EF7) ---
 
@@ -41,3 +43,10 @@ export const listerPromotions = () => requete<Promotion[]>("/api/promotions");
 
 export const listerEtudiants = (promotionId: number) =>
   requete<Etudiant[]>(`/api/promotions/${promotionId}/etudiants`);
+
+// --- Séances (EF1) ---
+
+export const ouvrirSession = (titre: string, promotionId: number) =>
+  requete<SessionOuverte>("/api/sessions", { method: "POST", body: JSON.stringify({ titre, promotionId }) });
+
+export const listerSessions = (promotionId: number) => requete<Session[]>(`/api/sessions?promotionId=${promotionId}`);
