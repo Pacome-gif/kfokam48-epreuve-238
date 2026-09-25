@@ -6,6 +6,7 @@ import { heure } from "@/lib/format";
 import { useChargement } from "@/lib/useChargement";
 import { Etat } from "@/components/Etat";
 import { OuvrirSeance } from "./OuvrirSeance";
+import { PresencesSeance } from "./PresencesSeance";
 import { Tableau } from "./Tableau";
 
 export default function PageFormateur() {
@@ -41,6 +42,10 @@ export default function PageFormateur() {
               <li key={s.id}>
                 <strong>{s.titre}</strong> — code <code>{s.code}</code>, ouverte le {heure(s.ouvertureAt)}
                 {s.clotureAt && <> — clôturée</>}
+                <details>
+                  <summary>Présences</summary>
+                  <PresencesSeance sessionId={s.id} promotionId={s.promotionId} />
+                </details>
               </li>
             ))}
           </ul>

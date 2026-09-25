@@ -69,6 +69,7 @@ export type ExerciceEtudiant = {
   relecturesAttendues: number;
   commentaires: string[];
 };
+export type PresenceDetail = Presence & { nom: string; createdAt: string };
 export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
 // --- Référentiel (EF7) ---
@@ -85,7 +86,13 @@ export const ouvrirSession = (titre: string, promotionId: number) =>
 
 export const listerSessions = (promotionId: number) => requete<Session[]>(`/api/sessions?promotionId=${promotionId}`);
 
-// --- Présences (EF2) ---
+// --- Présences (EF2, EF9) ---
+
+export const listerPresences = (sessionId: number) =>
+  requete<PresenceDetail[]>(`/api/sessions/${sessionId}/presences`);
+
+export const ajouterPresenceManuelle = (sessionId: number, etudiantId: number) =>
+  requete<Presence>(`/api/sessions/${sessionId}/presences`, { method: "POST", body: JSON.stringify({ etudiantId }) });
 
 export const marquerPresence = (code: string, etudiantId: number) =>
   requete<Presence>("/api/presences", { method: "POST", body: JSON.stringify({ code, etudiantId }) });
