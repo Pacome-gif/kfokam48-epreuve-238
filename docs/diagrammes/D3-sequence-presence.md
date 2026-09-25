@@ -1,6 +1,10 @@
 # D3 — Séquence : marquer sa présence
 
-Les codes HTTP et les codes d'erreur sont ceux de `api/contrat.yaml`. L'ordre des vérifications dans le service est celui de ce diagramme.
+Les codes HTTP et les codes d'erreur sont ceux de `api/contrat.yaml`. L'ordre des vérifications dans le service est celui de ce diagramme (`PresenceService.marquer`).
+
+**Version 2 (étape 3)** :
+- depuis le correctif du bug #21, l'attribution des exercices en attente a lieu **après** la validation de la présence, dans sa propre transaction ; un conflit avec une présence simultanée ne peut plus annuler la présence (H14) ;
+- le blocage après 5 codes erronés (RG4, `429`) est sorti du périmètre et n'apparaît plus.
 
 ```mermaid
 sequenceDiagram
@@ -10,7 +14,6 @@ sequenceDiagram
     participant API as PresenceController
     participant G as GestionErreurs (@RestControllerAdvice)
     participant S as PresenceService
-    participant T as TentativeCodeRepository
     participant SR as SessionRepository
     participant PR as PresenceRepository
     participant A as AssignationService
@@ -19,40 +22,34 @@ sequenceDiagram
     F->>API: POST /api/presences { code, etudiantId }
     API->>API: validation @Valid (champs obligatoires)
     alt champ manquant
-        API-->>F: 400 { code: "VALIDATION", message }
+        API->>G: MethodArgumentNotValidException
+        G-->>F: 400 { code: "VALIDATION", message }
     end
     API->>S: marquer(code, etudiantId)
-    S->>T: bloqué jusqu'à ? (RG4)
-    alt étudiant bloqué (5 erreurs < 2 min)
-        S-->>API: MetierException(TROP_DE_TENTATIVES)
-        API-->>F: 429 { code: "TROP_DE_TENTATIVES" }
-    end
     S->>SR: findByCode(code)
     alt code inconnu
-        S->>T: echecs + 1 (bloque 2 min si 5)
-        S-->>API: MetierException(CODE_INCONNU)
-        API-->>F: 400 { code: "CODE_INCONNU" }
+        S-->>G: MetierException(CODE_INCONNU)
+        G-->>F: 400 { code: "CODE_INCONNU" }
     else séance clôturée (RG3)
-        S-->>API: MetierException(SESSION_CLOTUREE)
-        API-->>F: 410 { code: "SESSION_CLOTUREE" }
+        S-->>G: MetierException(SESSION_CLOTUREE)
+        G-->>F: 410 { code: "SESSION_CLOTUREE" }
     else code expiré (RG1 : maintenant > expirationAt)
-        S-->>API: MetierException(CODE_EXPIRE)
-        API-->>F: 410 { code: "CODE_EXPIRE" }
+        S-->>G: MetierException(CODE_EXPIRE)
+        G-->>F: 410 { code: "CODE_EXPIRE" }
     else étudiant déjà présent (RG2)
-        S->>PR: existsBySessionAndEtudiant
+        S->>PR: existsBySessionIdAndEtudiantId
         PR-->>S: true
-        S-->>API: MetierException(DEJA_PRESENT)
-        API-->>F: 409 { code: "DEJA_PRESENT" }
+        S-->>G: MetierException(DEJA_PRESENT)
+        G-->>F: 409 { code: "DEJA_PRESENT" }
     else cas nominal
-        S->>PR: save(Presence source=ETUDIANT)
-        S->>T: echecs = 0
-        S->>A: assignerExercicesEnAttente(session) (H1)
+        S->>PR: saveAndFlush(Presence source=ETUDIANT)
         S-->>API: PresenceDto
+        Note over S,PR: transaction validée : la présence est enregistrée
+        S->>A: afterCommit → assignerEnAttente(session) (H1, H12)
+        Note over A: transaction séparée (REQUIRES_NEW),<br/>exercice verrouillé ; conflit ignoré (bug #21)
         API-->>F: 201 { id, sessionId, etudiantId, source: "ETUDIANT" }
         F-->>E: « Présence enregistrée »
     end
 ```
 
-Chaque `MetierException` est traduite en `{code, message}` par `GestionErreurs` avec le statut HTTP du contrat. Le contrôle de blocage (RG4) arrive avec l'issue #8 (Should).
-
-Le cas « étudiant d'une autre promotion » (`403 HORS_PROMOTION`, H10) est vérifié juste avant le contrôle « déjà présent ». Il n'est pas dessiné ici pour garder le diagramme lisible.
+`ETUDIANT_INCONNU` (400) est vérifié avant la recherche du code, et `HORS_PROMOTION` (403, H10) juste avant le contrôle « déjà présent ». Ils ne sont pas dessinés ici pour garder le diagramme lisible.
