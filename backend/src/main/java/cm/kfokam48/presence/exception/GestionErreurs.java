@@ -28,7 +28,7 @@ public class GestionErreurs {
 
     @ExceptionHandler(MetierException.class)
     public ResponseEntity<ErreurDto> metier(MetierException e) {
-        return reponse(e.getCode().statut(), e.getCode().name(), e.getMessage());
+        return reponse(e.getStatut(), e.getCode().name(), e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
