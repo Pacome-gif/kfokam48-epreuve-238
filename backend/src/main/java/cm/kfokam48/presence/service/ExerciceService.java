@@ -25,14 +25,16 @@ public class ExerciceService {
     private final EtudiantRepository etudiants;
     private final SessionService sessions;
     private final ValidateurLien validateurLien;
+    private final AssignationService assignation;
     private final Clock horloge;
 
     public ExerciceService(ExerciceRepository exercices, EtudiantRepository etudiants, SessionService sessions,
-            ValidateurLien validateurLien, Clock horloge) {
+            ValidateurLien validateurLien, AssignationService assignation, Clock horloge) {
         this.exercices = exercices;
         this.etudiants = etudiants;
         this.sessions = sessions;
         this.validateurLien = validateurLien;
+        this.assignation = assignation;
         this.horloge = horloge;
     }
 
@@ -48,11 +50,13 @@ public class ExerciceService {
         if (exercices.existsBySessionIdAndEtudiantId(session.getId(), etudiant.getId())) {
             throw new MetierException(CodeErreur.EXERCICE_DEJA_DEPOSE); // RG12
         }
+        Exercice exercice;
         try {
-            Exercice exercice = exercices.saveAndFlush(new Exercice(session, etudiant, lien, horloge.instant()));
-            return ExerciceCreeDto.de(exercice);
+            exercice = exercices.saveAndFlush(new Exercice(session, etudiant, lien, horloge.instant()));
         } catch (DataIntegrityViolationException doubleEnvoi) {
             throw new MetierException(CodeErreur.EXERCICE_DEJA_DEPOSE);
         }
+        assignation.assigner(exercice); // EF4
+        return ExerciceCreeDto.de(exercice);
     }
 }

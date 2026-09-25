@@ -30,13 +30,15 @@ public class PresenceService {
     private final SessionRepository sessions;
     private final EtudiantRepository etudiants;
     private final PresenceRepository presences;
+    private final AssignationService assignation;
     private final Clock horloge;
 
     public PresenceService(SessionRepository sessions, EtudiantRepository etudiants, PresenceRepository presences,
-            Clock horloge) {
+            AssignationService assignation, Clock horloge) {
         this.sessions = sessions;
         this.etudiants = etudiants;
         this.presences = presences;
+        this.assignation = assignation;
         this.horloge = horloge;
     }
 
@@ -64,12 +66,14 @@ public class PresenceService {
         if (presences.existsBySessionIdAndEtudiantId(session.getId(), etudiant.getId())) {
             throw new MetierException(CodeErreur.DEJA_PRESENT); // RG2
         }
+        Presence presence;
         try {
-            Presence presence = presences.saveAndFlush(new Presence(session, etudiant, source, maintenant));
-            return PresenceDto.de(presence);
+            presence = presences.saveAndFlush(new Presence(session, etudiant, source, maintenant));
         } catch (DataIntegrityViolationException doubleClic) {
             // RG2 garantie aussi par la contrainte unique, en cas de requêtes simultanées
             throw new MetierException(CodeErreur.DEJA_PRESENT);
         }
+        assignation.assignerEnAttente(session.getId()); // H1
+        return PresenceDto.de(presence);
     }
 }

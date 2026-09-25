@@ -27,6 +27,7 @@ import cm.kfokam48.presence.exception.MetierException;
 import cm.kfokam48.presence.repository.EtudiantRepository;
 import cm.kfokam48.presence.repository.PresenceRepository;
 import cm.kfokam48.presence.repository.SessionRepository;
+import cm.kfokam48.presence.service.AssignationService;
 import cm.kfokam48.presence.service.PresenceService;
 import cm.kfokam48.presence.service.SessionService;
 
@@ -59,7 +60,7 @@ class PresenceServiceTest {
     }
 
     PresenceService serviceA(String instant) {
-        return new PresenceService(sessions, etudiants, presences,
+        return new PresenceService(sessions, etudiants, presences, mock(AssignationService.class),
                 Clock.fixed(Instant.parse(instant), ZoneOffset.UTC));
     }
 
