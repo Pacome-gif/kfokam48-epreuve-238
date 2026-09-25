@@ -1,6 +1,6 @@
 # Cahier des charges — KFOKAM48 Présence & Relecture
 
-Auteur : KF48-238 · **Version 2 (étape 3 : bug #21 et changement « deux relecteurs »)** · Frontend choisi : **Next.js**, parce que je le pratique déjà (App Router, TypeScript) et qu'il donne en un seul outil le routage des trois écrans et un build de production vérifiable (`npm run build`).
+Auteur : 238 · **Version 2 (étape 3 : bug #21 et changement « deux relecteurs »)** · Frontend choisi : **Next.js**, parce que je le pratique déjà (App Router, TypeScript) et qu'il donne en un seul outil le routage des trois écrans et un build de production vérifiable (`npm run build`).
 
 ---
 

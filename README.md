@@ -1,4 +1,4 @@
-# kfokam48-epreuve-KF48-238
+# kfokam48-epreuve-238
 
 Application de présence par code et de relecture par les pairs pour la formation KFOKAM48.
 
@@ -14,8 +14,8 @@ Application de présence par code et de relecture par les pairs pour la formatio
 Prérequis : Docker avec Compose.
 
 ```bash
-git clone https://github.com/Pacome-gif/kfokam48-epreuve-KF48-238.git
-cd kfokam48-epreuve-KF48-238
+git clone https://github.com/Pacome-gif/kfokam48-epreuve-238.git
+cd kfokam48-epreuve-238
 docker compose up --build
 ```
 

@@ -1,4 +1,4 @@
-# Journal — KF48-238
+# Journal — 238
 
 ## Étape 1 — Analyse et conception (≈ 10h05 → 10h45)
 

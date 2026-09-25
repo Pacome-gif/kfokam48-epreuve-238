@@ -3,7 +3,7 @@ info:
   title: KFOKAM48 — Présence & Relecture
   version: "1.1.0"
   description: |
-    Contrat d'API de l'épreuve finale KFOKAM48 (matricule KF48-238).
+    Contrat d'API de l'épreuve finale KFOKAM48 (matricule 238).
 
     Les cinq opérations imposées par le sujet (Annexe B) sont marquées **[IMPOSÉ]**
     et respectées à la lettre : chemins, verbes, codes de statut.
