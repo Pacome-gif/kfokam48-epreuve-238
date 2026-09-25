@@ -38,6 +38,15 @@ export type SessionOuverte = { id: number; code: string; ouvertureAt: string; ex
 export type Presence = { id: number; sessionId: number; etudiantId: number; source: "ETUDIANT" | "FORMATEUR" };
 export type StatutExercice = "DEPOSE" | "EN_ATTENTE_RELECTURE" | "RELU";
 export type ExerciceCree = { id: number; statut: StatutExercice };
+export type RelectureAssignee = {
+  id: number;
+  exerciceId: number;
+  sessionTitre: string;
+  lien: string;
+  rendue: boolean;
+  note: number | null;
+  commentaire: string | null;
+};
 export type Session = SessionOuverte & { titre: string; promotionId: number; clotureAt: string | null };
 
 // --- Référentiel (EF7) ---
@@ -63,3 +72,15 @@ export const marquerPresence = (code: string, etudiantId: number) =>
 
 export const deposerExercice = (sessionId: number, etudiantId: number, lien: string) =>
   requete<ExerciceCree>("/api/exercices", { method: "POST", body: JSON.stringify({ sessionId, etudiantId, lien }) });
+
+// --- Relectures (EF5, EF8) — identité déclarée dans X-Etudiant-Id (H2) ---
+
+export const mesRelectures = (etudiantId: number) =>
+  requete<RelectureAssignee[]>(`/api/etudiants/${etudiantId}/relectures`);
+
+export const rendreRelecture = (relectureId: number, etudiantId: number, note: number, commentaire: string) =>
+  requete<RelectureAssignee>(`/api/relectures/${relectureId}`, {
+    method: "POST",
+    headers: { "X-Etudiant-Id": String(etudiantId) },
+    body: JSON.stringify({ note, commentaire }),
+  });
