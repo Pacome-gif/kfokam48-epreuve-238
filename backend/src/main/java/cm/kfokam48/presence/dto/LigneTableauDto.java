@@ -2,8 +2,8 @@ package cm.kfokam48.presence.dto;
 
 /**
  * Ligne du tableau formateur (contrat : GET /api/tableau).
- * exercicesEnAttente est un champ ajouté (H9) pour rendre visible Q11.
+ * exercicesEnAttente (H9, Q11) et moyenneProvisoire (RG14 v2) sont des champs ajoutés au contrat imposé.
  */
 public record LigneTableauDto(Long etudiantId, String nom, long presences, long exercicesDeposes, Double moyenne,
-        long relecturesEnAttente, long exercicesEnAttente) {
+        boolean moyenneProvisoire, long relecturesEnAttente, long exercicesEnAttente) {
 }

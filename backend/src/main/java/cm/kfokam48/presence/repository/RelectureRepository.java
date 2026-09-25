@@ -1,5 +1,6 @@
 package cm.kfokam48.presence.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,11 +17,13 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
 
     long countByExerciceIdAndRendueAtIsNotNull(Long exerciceId);
 
-    /** Tableau : [auteurId, moyenne des notes rendues sur ses exercices] (RG14). */
-    @Query("select r.exercice.etudiant.id, avg(r.note) from Relecture r "
-            + "where r.rendueAt is not null and r.exercice.session.promotion.id = :promotionId "
-            + "group by r.exercice.etudiant.id")
-    List<Object[]> moyenneParAuteur(@Param("promotionId") Long promotionId);
+    /** Tableau (RG14 v2, RG21) : relectures rendues sur les exercices d'une promotion. */
+    @Query("select r from Relecture r join fetch r.exercice e "
+            + "where r.rendueAt is not null and e.session.promotion.id = :promotionId")
+    List<Relecture> renduesDeLaPromotion(@Param("promotionId") Long promotionId);
+
+    /** EF12 : relectures rendues sur des exercices donnés. */
+    List<Relecture> findByExerciceIdInAndRendueAtIsNotNullOrderByRendueAtAsc(Collection<Long> exerciceIds);
 
     /** Tableau : [relecteurId, relectures assignées non rendues] (Q16). */
     @Query("select r.relecteur.id, count(r) from Relecture r "

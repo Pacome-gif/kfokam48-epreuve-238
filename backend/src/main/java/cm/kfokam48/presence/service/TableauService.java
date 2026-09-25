@@ -1,14 +1,16 @@
 package cm.kfokam48.presence.service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cm.kfokam48.presence.domain.Exercice;
+import cm.kfokam48.presence.domain.Relecture;
 import cm.kfokam48.presence.dto.LigneTableauDto;
 import cm.kfokam48.presence.repository.EtudiantRepository;
 import cm.kfokam48.presence.repository.ExerciceRepository;
@@ -44,24 +46,31 @@ public class TableauService {
         Map<Long, Long> nbDeposes = parEtudiant(statsExercices, 1);
         Map<Long, Long> nbNonRelus = parEtudiant(statsExercices, 2);
         Map<Long, Long> nbAFaire = parEtudiant(relectures.enAttenteParRelecteur(promotionId), 1);
-        Map<Long, Double> moyennes = new HashMap<>();
-        for (Object[] ligne : relectures.moyenneParAuteur(promotionId)) {
-            moyennes.put((Long) ligne[0], arrondi(((Number) ligne[1]).doubleValue()));
-        }
+        Map<Long, NoteRetenue> moyennes = moyennesParEtudiant(promotionId);
 
         return etudiants.findByPromotionIdOrderByNomAsc(promotionId).stream()
                 .map(e -> new LigneTableauDto(e.getId(), e.getNom(),
                         nbPresences.getOrDefault(e.getId(), 0L),
                         nbDeposes.getOrDefault(e.getId(), 0L),
-                        moyennes.get(e.getId()), // null si aucune note (RG14)
+                        moyennes.getOrDefault(e.getId(), NoteRetenue.AUCUNE).note(), // null si aucune (RG14)
+                        moyennes.getOrDefault(e.getId(), NoteRetenue.AUCUNE).provisoire(),
                         nbAFaire.getOrDefault(e.getId(), 0L),
                         nbNonRelus.getOrDefault(e.getId(), 0L)))
                 .toList();
     }
 
-    /** RG14 : moyenne arrondie à 2 décimales. */
-    static Double arrondi(double moyenne) {
-        return BigDecimal.valueOf(moyenne).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    /** RG21 par exercice, puis RG14 v2 par étudiant. */
+    private Map<Long, NoteRetenue> moyennesParEtudiant(Long promotionId) {
+        Map<Exercice, List<Integer>> notesParExercice = relectures.renduesDeLaPromotion(promotionId).stream()
+                .collect(Collectors.groupingBy(Relecture::getExercice,
+                        Collectors.mapping(Relecture::getNote, Collectors.toList())));
+        Map<Long, List<NoteRetenue>> notesParEtudiant = new HashMap<>();
+        notesParExercice.forEach((exercice, notes) -> notesParEtudiant
+                .computeIfAbsent(exercice.getEtudiant().getId(), id -> new ArrayList<>())
+                .add(NoteRetenue.calculer(notes, exercice.getRelecteursRequis())));
+        Map<Long, NoteRetenue> moyennes = new HashMap<>();
+        notesParEtudiant.forEach((etudiantId, notes) -> moyennes.put(etudiantId, NoteRetenue.moyenne(notes)));
+        return moyennes;
     }
 
     private static Map<Long, Long> parEtudiant(List<Object[]> lignes, int colonne) {
