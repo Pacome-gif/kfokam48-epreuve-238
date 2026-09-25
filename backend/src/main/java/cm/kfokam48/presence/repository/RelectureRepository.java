@@ -12,6 +12,10 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
 
     List<Relecture> findByRelecteurIdOrderByAssigneeAtDesc(Long relecteurId);
 
+    List<Relecture> findByExerciceId(Long exerciceId);
+
+    long countByExerciceIdAndRendueAtIsNotNull(Long exerciceId);
+
     /** Tableau : [auteurId, moyenne des notes rendues sur ses exercices] (RG14). */
     @Query("select r.exercice.etudiant.id, avg(r.note) from Relecture r "
             + "where r.rendueAt is not null and r.exercice.session.promotion.id = :promotionId "

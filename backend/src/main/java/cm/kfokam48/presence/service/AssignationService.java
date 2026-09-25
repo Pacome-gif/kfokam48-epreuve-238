@@ -5,7 +5,6 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ import cm.kfokam48.presence.repository.PresenceRepository;
 import cm.kfokam48.presence.repository.RelectureRepository;
 
 /**
- * EF4 : attribue un relecteur à chaque exercice déposé (RG5, RG6, RG7, H1, H3).
+ * EF4 : attribue deux relecteurs distincts à chaque exercice déposé (RG5, RG6 v2, RG7, H1, H3, H12).
  */
 @Service
 @Transactional
@@ -43,30 +42,41 @@ public class AssignationService {
         this.horloge = horloge;
     }
 
-    /** Au dépôt : tire un relecteur si un présent éligible existe, sinon l'exercice reste DEPOSE. */
-    public void assigner(Exercice exercice) {
-        if (exercice.getStatut() != StatutExercice.DEPOSE) {
+    /**
+     * Complète les relecteurs manquants d'un exercice avec les présents éligibles.
+     * L'exercice est verrouillé : deux attributions simultanées ne dépassent jamais le nombre requis (H14).
+     */
+    public void assigner(Exercice depose) {
+        Exercice exercice = exercices.verrouiller(depose.getId()).orElseThrow();
+        if (exercice.getStatut() == StatutExercice.RELU) {
+            return;
+        }
+        List<Long> dejaAssignes = relectures.findByExerciceId(exercice.getId()).stream()
+                .map(r -> r.getRelecteur().getId())
+                .toList();
+        int manquants = exercice.getRelecteursRequis() - dejaAssignes.size();
+        if (manquants <= 0) {
             return;
         }
         Long sessionId = exercice.getSession().getId();
-        Optional<Long> relecteurId = ChoixRelecteur.choisir(exercice.getEtudiant().getId(),
-                presences.idsPresents(sessionId), charges(sessionId), hasard);
-        relecteurId.ifPresent(id -> {
+        List<Long> nouveaux = ChoixRelecteur.choisir(exercice.getEtudiant().getId(),
+                presences.idsPresents(sessionId), dejaAssignes, charges(sessionId), manquants, hasard);
+        for (Long id : nouveaux) {
             relectures.save(new Relecture(exercice, etudiants.getReferenceById(id), horloge.instant()));
+        }
+        if (!nouveaux.isEmpty() && exercice.getStatut() == StatutExercice.DEPOSE) {
             exercice.mettreEnAttenteDeRelecture();
-        });
+        }
     }
 
     /**
-     * H1 : à chaque nouvelle présence, les exercices restés sans relecteur retentent leur chance.
+     * H1, H12 : à chaque nouvelle présence, les exercices à qui il manque des relecteurs retentent leur chance.
      * Transaction propre (bug #21) : si deux présences simultanées visent le même exercice, seule
      * cette attribution échoue, jamais la présence déjà validée.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void assignerEnAttente(Long sessionId) {
-        List<Exercice> enAttente = exercices.findBySessionIdAndStatutOrderByDeposeAtAsc(sessionId,
-                StatutExercice.DEPOSE);
-        enAttente.forEach(this::assigner);
+        exercices.manquantDeRelecteurs(sessionId).forEach(this::assigner);
     }
 
     private Map<Long, Long> charges(Long sessionId) {

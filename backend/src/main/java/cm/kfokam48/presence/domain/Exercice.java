@@ -18,6 +18,9 @@ import jakarta.persistence.Table;
 @Table(name = "exercice")
 public class Exercice {
 
+    /** RG6 v2 : deux relecteurs distincts pour tout nouveau dépôt. */
+    public static final int RELECTEURS_REQUIS = 2;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,6 +43,10 @@ public class Exercice {
     @Column(name = "depose_at", nullable = false)
     private Instant deposeAt;
 
+    /** 2 ; 1 pour les exercices déposés avant la migration V3 (H11). */
+    @Column(name = "relecteurs_requis", nullable = false)
+    private int relecteursRequis;
+
     protected Exercice() {
     }
 
@@ -49,6 +56,7 @@ public class Exercice {
         this.lien = lien;
         this.deposeAt = deposeAt;
         this.statut = StatutExercice.DEPOSE;
+        this.relecteursRequis = RELECTEURS_REQUIS;
     }
 
     /** D4 : DEPOSE -> EN_ATTENTE_RELECTURE quand un relecteur est tiré. */
@@ -56,7 +64,7 @@ public class Exercice {
         this.statut = StatutExercice.EN_ATTENTE_RELECTURE;
     }
 
-    /** D4 : EN_ATTENTE_RELECTURE -> RELU quand la relecture est rendue. */
+    /** D4 : EN_ATTENTE_RELECTURE -> RELU quand toutes les relectures requises sont rendues (RG20). */
     public void marquerRelu() {
         this.statut = StatutExercice.RELU;
     }
@@ -83,5 +91,9 @@ public class Exercice {
 
     public Instant getDeposeAt() {
         return deposeAt;
+    }
+
+    public int getRelecteursRequis() {
+        return relecteursRequis;
     }
 }

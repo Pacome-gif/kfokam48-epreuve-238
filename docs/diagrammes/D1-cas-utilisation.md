@@ -18,14 +18,13 @@ flowchart LR
         UC7([Choisir son nom dans la liste — EF7])
         UC2([Marquer sa présence avec le code — EF2])
         UC3([Déposer le lien de son exercice — EF3])
-        UC11([Remplacer le lien de son exercice — EF11])
-        UC12([Consulter la note reçue — EF12])
+        UC12([Consulter la note reçue, provisoire ou définitive — EF12])
 
         UC8([Voir les relectures à faire — EF8])
         UC5([Rendre une note et un commentaire — EF5])
 
-        UC4([Assigner un relecteur au hasard — EF4])
-        UC13([Bloquer après 5 codes erronés — EF13])
+        UC4([Assigner deux relecteurs au hasard — EF4])
+        UC15([Calculer la note retenue — RG21])
     end
 
     F --- UC1
@@ -36,20 +35,21 @@ flowchart LR
     E --- UC7
     E --- UC2
     E --- UC3
-    E --- UC11
     E --- UC12
 
     R --- UC8
     R --- UC5
 
     SYS --- UC4
-    SYS --- UC13
+    SYS --- UC15
 
     UC2 -. "«include»" .-> UC7
     UC3 -. "«include»" .-> UC7
     UC3 -. "«include»" .-> UC4
-    UC2 -. "«extend» 5 erreurs" .-> UC13
     UC5 -. "«include»" .-> UC8
+    UC12 -. "«include»" .-> UC15
 ```
+
+**Version 2 (étape 3)** : deux relecteurs par exercice et note provisoire (EF4, EF12, RG21). Les cas « remplacer son lien » (EF11) et « blocage après 5 erreurs » (EF13) sont sortis du périmètre.
 
 Note : le **Relecteur** n'est pas un compte à part. C'est un Étudiant présent à la séance que le système a désigné (RG7).
