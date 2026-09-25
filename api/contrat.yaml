@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: KFOKAM48 — Présence & Relecture
-  version: "1.0.0"
+  version: "1.1.0"
   description: |
     Contrat d'API de l'épreuve finale KFOKAM48 (matricule KF48-238).
 
@@ -11,6 +11,12 @@ info:
 
     **Format d'erreur unique** pour toutes les erreurs, sans exception :
     `{ "code": "CODE_EXPIRE", "message": "Le code de présence a expiré." }`
+
+    **Version 1.1.0 (étape 3, changement de besoin)** : chaque exercice est relu par deux pairs
+    (RG6 v2) ; la note retenue est la moyenne des relectures rendues, provisoire tant qu'elles ne sont
+    pas toutes rendues (RG21). Formes modifiées : `ExerciceEtudiant` (note retenue décimale,
+    `noteProvisoire`, `commentaires`), `LigneTableau` (`moyenneProvisoire`). Retirés (hors périmètre) :
+    `PUT /api/exercices/{id}` (RG11) et `429 TROP_DE_TENTATIVES` (RG4).
 
     **Identité** : pas d'authentification (Q1). Quand une opération doit savoir quel
     étudiant agit sans l'avoir dans son corps imposé, il le déclare dans l'en-tête
@@ -181,7 +187,7 @@ paths:
               schema: { $ref: "#/components/schemas/Presence" }
         "400":
           description: |
-            Code inconnu — `CODE_INCONNU` (compte pour le blocage RG4) ·
+            Code inconnu — `CODE_INCONNU` ·
             étudiant inconnu — `ETUDIANT_INCONNU` · champ manquant — `VALIDATION`
           content:
             application/json:
@@ -195,18 +201,15 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Erreur" }
               example: { code: "CODE_EXPIRE", message: "Le code de présence a expiré." }
-        "429":
-          description: 5 codes inconnus consécutifs, étudiant bloqué 2 minutes — `TROP_DE_TENTATIVES` (RG4)
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Erreur" }
-
   /api/exercices:
     post:
       tags: [Exercices]
       operationId: deposerExercice
       summary: "[IMPOSÉ] L'étudiant dépose le lien de son exercice (EF3)"
-      description: Déclenche l'assignation d'un relecteur au hasard parmi les présents (EF4, RG5-RG7).
+      description: |
+        Déclenche l'assignation de **deux relecteurs distincts** tirés au hasard parmi les présents
+        (EF4, RG5-RG7, RG6 v2). S'il manque des candidats, les relectures manquantes sont assignées
+        aux présences suivantes (H1, H12) : le statut renvoyé peut donc être `DEPOSE`.
       requestBody:
         required: true
         content:
@@ -237,52 +240,11 @@ paths:
               schema: { $ref: "#/components/schemas/Erreur" }
         "410": { $ref: "#/components/responses/SessionCloturee" }
 
-  /api/exercices/{id}:
-    put:
-      tags: [Exercices]
-      operationId: remplacerLien
-      summary: L'étudiant remplace le lien de son exercice (EF11, RG11)
-      parameters:
-        - $ref: "#/components/parameters/IdPath"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [etudiantId, lien]
-              properties:
-                etudiantId: { type: integer, format: int64 }
-                lien: { type: string, format: uri }
-      responses:
-        "200":
-          description: Lien remplacé
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ExerciceCree" }
-        "400":
-          description: Lien invalide — `LIEN_INVALIDE`
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Erreur" }
-        "403":
-          description: L'étudiant n'est pas l'auteur — `NON_AUTEUR`
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Erreur" }
-        "404": { $ref: "#/components/responses/ExerciceInconnu" }
-        "409":
-          description: Relecture déjà rendue — `EXERCICE_DEJA_RELU`
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Erreur" }
-        "410": { $ref: "#/components/responses/SessionCloturee" }
-
   /api/etudiants/{id}/exercices:
     get:
       tags: [Exercices]
       operationId: mesExercices
-      summary: Exercices d'un étudiant, avec la note et le commentaire reçus, sans le relecteur (EF12, RG16)
+      summary: Exercices d'un étudiant, avec la note retenue (provisoire ou non) et les commentaires reçus, sans les relecteurs (EF12, RG16, RG21)
       parameters:
         - $ref: "#/components/parameters/IdPath"
       responses:
@@ -320,7 +282,8 @@ paths:
       description: |
         `{id}` est l'identifiant de la relecture (assignation), visible dans `GET /api/etudiants/{id}/relectures`.
         Le relecteur déclare son identité dans `X-Etudiant-Id` (H2).
-        Une relecture rendue est définitive (RG9, Q15).
+        Une relecture rendue est définitive (RG9, Q15). L'exercice passe à `RELU` quand toutes ses
+        relectures requises sont rendues (RG20).
       parameters:
         - $ref: "#/components/parameters/IdPath"
         - name: X-Etudiant-Id
@@ -345,7 +308,7 @@ paths:
                   maxLength: 2000
       responses:
         "200":
-          description: Relecture enregistrée, l'exercice passe à `RELU`
+          description: Relecture enregistrée
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RelectureAssignee" }
@@ -469,11 +432,8 @@ components:
             - SESSION_DEJA_CLOTUREE
             - DEJA_PRESENT
             - HORS_PROMOTION
-            - TROP_DE_TENTATIVES
             - LIEN_INVALIDE
             - EXERCICE_DEJA_DEPOSE
-            - EXERCICE_DEJA_RELU
-            - NON_AUTEUR
             - NOTE_INVALIDE
             - AUTO_RELECTURE
             - NON_RELECTEUR
@@ -560,15 +520,29 @@ components:
 
     ExerciceEtudiant:
       type: object
-      description: Vue de l'auteur — ne contient jamais l'identité du relecteur (RG16)
+      description: Vue de l'auteur — ne contient jamais l'identité d'un relecteur (RG16)
       properties:
         id: { type: integer, format: int64 }
         sessionId: { type: integer, format: int64 }
         sessionTitre: { type: string }
         lien: { type: string }
         statut: { $ref: "#/components/schemas/StatutExercice" }
-        note: { type: integer, nullable: true }
-        commentaire: { type: string, nullable: true }
+        note:
+          type: number
+          format: double
+          nullable: true
+          description: Note retenue = moyenne des notes rendues, 2 décimales ; null si aucune rendue (RG21)
+        noteProvisoire:
+          type: boolean
+          description: true tant que relecturesRendues < relecturesAttendues et qu'au moins une note existe (RG21)
+        relecturesRendues: { type: integer }
+        relecturesAttendues:
+          type: integer
+          description: 2 ; 1 pour les exercices déposés avant la v1.1 (H11)
+        commentaires:
+          type: array
+          description: Commentaires des relectures rendues, sans auteur
+          items: { type: string }
 
     RelectureAssignee:
       type: object
@@ -596,7 +570,10 @@ components:
           type: number
           format: double
           nullable: true
-          description: Moyenne des notes rendues sur ses exercices, 2 décimales ; null si aucune (RG14)
+          description: Moyenne des notes retenues de ses exercices (RG21), 2 décimales ; null si aucune (RG14)
+        moyenneProvisoire:
+          type: boolean
+          description: true si au moins une note retenue entrant dans la moyenne est provisoire (RG14 v2)
         relecturesEnAttente:
           type: integer
           description: Relectures assignées à cet étudiant et non rendues (Q16)
