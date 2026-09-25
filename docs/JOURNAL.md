@@ -38,7 +38,7 @@
 
 Pour la migration, j'ai appliqué V3 dans une transaction annulée sur la base remplie, puis laissé Flyway l'appliquer réellement : les 34 exercices et les 3 notes sont conservés. Une requête SQL confirme qu'aucun exercice n'a plus de 2 relecteurs, ni deux fois le même.
 
-## Étape 4 — Version finale v1.0 (≈ 12h30 → 13h40)
+## Étape 4 — Version finale v1.0 (≈ 12h30 → 13h05)
 
 **Fait** : lecture du sujet révisé, qui passe à 5 étapes (l'épreuve Git est supprimée) et utilise « issue » partout. La section 10 du CDC est mise à jour dans un commit dédié, sans toucher aux étapes passées. J'ai reformulé #9 et #10 au format « quand … alors … » avant de les coder, puis livré la présence ajoutée à la main (PR #27) et la clôture de séance (PR #28). Backlog trié : #8, #11 et #13 sont fermés « not planned », avec un renvoi à la repriorisation. J'ai aussi écrit le `CHANGELOG.md` (analyse, 0.1.0, 1.0.0), et vérifié le README depuis un **clone vierge** avec `docker compose up --build`. Au total, 343 tests verts.
 
