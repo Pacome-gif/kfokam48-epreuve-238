@@ -6,6 +6,7 @@ import { heure } from "@/lib/format";
 import { useChargement } from "@/lib/useChargement";
 import { Etat } from "@/components/Etat";
 import { OuvrirSeance } from "./OuvrirSeance";
+import { Tableau } from "./Tableau";
 
 export default function PageFormateur() {
   const [promotionId, setPromotionId] = useState<number | null>(null);
@@ -29,6 +30,8 @@ export default function PageFormateur() {
       {promotionId && (
         <>
           <OuvrirSeance promotionId={promotionId} onOuverte={sessions.recharger} />
+
+          <Tableau key={promotionId} promotionId={promotionId} />
 
           <h2>Séances</h2>
           <Etat chargement={sessions.chargement} erreur={sessions.erreur} />
